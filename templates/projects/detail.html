@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}{{ project.title }} — Flock{% endblock %}
+{% block content %}
+<div class="project-detail-container">
+    <div class="project-header">
+        <h1>{{ project.title }}</h1>
+        <span class="project-status status-{{ project.status }}">{{ project.status }}</span>
+    </div>
+
+    {% if project.description %}
+        <div class="project-description">
+            <p>{{ project.description }}</p>
+        </div>
+    {% endif %}
+
+    <div class="project-meta">
+        <p>Owner: <a href="/profile/{{ project.owner.username }}">{{ project.owner.display_name or project.owner.username }}</a></p>
+        {% if project.team %}
+            <p>Team: <a href="/teams/{{ project.team.slug }}">{{ project.team.name }}</a></p>
+        {% endif %}
+        {% if project.repo_url %}
+            <p>Repo: <a href="{{ project.repo_url }}" target="_blank">{{ project.repo_url }}</a></p>
+        {% endif %}
+        {% if project.live_url %}
+            <p>Live: <a href="{{ project.live_url }}" target="_blank">{{ project.live_url }}</a></p>
+        {% endif %}
+        <p>Created: {{ project.created_at.strftime('%b %d, %Y') }}</p>
+    </div>
+
+    <div class="contributors-section">
+        <h2>Contributors</h2>
+        {% for contributor in contributors %}
+            <div class="contributor-item">
+                <a href="/profile/{{ contributor.user.username }}">
+                    {{ contributor.user.display_name or contributor.user.username }}
+                </a>
+                <span class="contributor-role">{{ contributor.role }}</span>
+            </div>
+        {% else %}
+            <p class="empty-state">No contributors listed.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

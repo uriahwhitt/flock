@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard — Flock{% endblock %}
+{% block content %}
+<div class="admin-container">
+    <h1>Admin Dashboard</h1>
+    <nav class="admin-nav">
+        <a href="/admin">Dashboard</a>
+        <a href="/admin/users">Users</a>
+        <a href="/admin/features">Feature Flags</a>
+    </nav>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Total Users</h3>
+            <p class="stat-value">{{ total_users }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>Total Posts</h3>
+            <p class="stat-value">{{ total_posts }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>Active Sessions</h3>
+            <p class="stat-value">{{ active_sessions }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>Pending Notifications</h3>
+            <p class="stat-value">{{ pending_count }}</p>
+        </div>
+    </div>
+
+    <div class="recent-users">
+        <h2>Recent Registrations</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Joined</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in recent_users %}
+                    <tr>
+                        <td><a href="/profile/{{ user.username }}">{{ user.username }}</a></td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.created_at.strftime('%b %d, %Y') }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

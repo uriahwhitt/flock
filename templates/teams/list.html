@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Teams — Flock{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="/static/css/teams.css">{% endblock %}
+{% block content %}
+<div class="teams-container">
+    <div class="teams-header">
+        <h1>Teams</h1>
+        {% if session.user %}
+            <a href="/teams/create" class="btn btn-primary">Create Team</a>
+        {% endif %}
+    </div>
+
+    <form method="GET" action="/teams" class="search-form">
+        <input type="text" name="q" value="{{ q }}" placeholder="Search teams...">
+        <button type="submit" class="btn">Search</button>
+    </form>
+
+    <div class="teams-list">
+        {% for team in teams %}
+            <div class="team-card">
+                <div class="team-info">
+                    {% if team.avatar_url %}
+                        <img src="/{{ team.avatar_url }}" class="avatar-sm" alt="team avatar">
+                    {% endif %}
+                    <h3><a href="/teams/{{ team.slug }}">{{ team.name }}</a></h3>
+                    {% if team.description %}
+                        <p>{{ team.description[:150] }}{% if team.description|length > 150 %}...{% endif %}</p>
+                    {% endif %}
+                    <span class="member-count">{{ team.member_count }} members</span>
+                </div>
+            </div>
+        {% else %}
+            <p class="empty-state">No teams found.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="/static/js/teams.js"></script>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Feed — Flock{% endblock %}
+{% block extra_css %}{% endblock %}
+{% block content %}
+<div class="feed-container">
+    <div class="post-form">
+        <h2>Share something</h2>
+        <form method="POST" action="/feed/post" enctype="multipart/form-data">
+            <div class="form-group">
+                <textarea name="content" placeholder="What's on your mind?" rows="3" maxlength="1000"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="image">Attach image</label>
+                <input type="file" id="image" name="image" accept="image/*">
+            </div>
+            <button type="submit" class="btn btn-primary">Post</button>
+        </form>
+    </div>
+
+    <div class="posts-list">
+        {% for post in posts %}
+            <div class="post-card" id="post-{{ post.id }}">
+                <div class="post-header">
+                    <a href="/profile/{{ post.author.username }}">
+                        {% if post.author.avatar_url %}
+                            <img src="/{{ post.author.avatar_url }}" class="avatar-sm" alt="avatar">
+                        {% endif %}
+                        <strong>{{ post.author.display_name or post.author.username }}</strong>
+                        <span class="username">@{{ post.author.username }}</span>
+                    </a>
+                    <span class="post-time">{{ post.created_at.strftime('%b %d, %Y') }}</span>
+                </div>
+                <div class="post-content">
+                    <p>{{ post.content }}</p>
+                    {% if post.image_url %}
+                        <img src="/{{ post.image_url }}" class="post-image" alt="post image">
+                    {% endif %}
+                </div>
+                <div class="post-actions">
+                    <button class="like-btn" data-post-id="{{ post.id }}">
+                        ♥ <span class="like-count-{{ post.id }}">{{ post.like_count }}</span>
+                    </button>
+                    <a href="/feed/post/{{ post.id }}">
+                        💬 {{ post.comment_count }}
+                    </a>
+                    {% if session.user == post.author.username %}
+                        <form method="POST" action="/feed/post/{{ post.id }}/delete" style="display:inline">
+                            <button type="submit" class="btn-delete">Delete</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        {% else %}
+            <p class="empty-state">No posts yet. Be the first to share something!</p>
+        {% endfor %}
+    </div>
+
+    {% if pagination %}
+        <div class="pagination">
+            {% if pagination.has_prev %}
+                <a href="?page={{ pagination.prev_num }}" class="btn">Previous</a>
+            {% endif %}
+            <span>Page {{ pagination.page }} of {{ pagination.pages }}</span>
+            {% if pagination.has_next %}
+                <a href="?page={{ pagination.next_num }}" class="btn">Next</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="/static/js/feed.js"></script>
+{% endblock %}

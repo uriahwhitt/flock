@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Create Project — Flock{% endblock %}
+{% block content %}
+<div class="create-project-container">
+    <h1>New Project</h1>
+    <form method="POST" action="/projects/create">
+        <div class="form-group">
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title" required>
+        </div>
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="4"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="status">Status</label>
+            <select id="status" name="status">
+                <option value="active">Active</option>
+                <option value="completed">Completed</option>
+                <option value="archived">Archived</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="repo_url">Repository URL</label>
+            <input type="url" id="repo_url" name="repo_url">
+        </div>
+        <div class="form-group">
+            <label for="live_url">Live URL</label>
+            <input type="url" id="live_url" name="live_url">
+        </div>
+        <div class="form-group">
+            <label for="team_id">Team (optional)</label>
+            <select id="team_id" name="team_id">
+                <option value="">Personal project</option>
+                {% for team in teams %}
+                    <option value="{{ team.id }}">{{ team.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Create Project</button>
+        <a href="/projects" class="btn">Cancel</a>
+    </form>
+</div>
+{% endblock %}

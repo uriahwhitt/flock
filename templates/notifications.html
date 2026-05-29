@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Notifications — Flock{% endblock %}
+{% block content %}
+<div class="notifications-container">
+    <div class="notifications-header">
+        <h1>Notifications</h1>
+        <form method="POST" action="/notifications/mark_all_read">
+            <button type="submit" class="btn">Mark All Read</button>
+        </form>
+    </div>
+
+    <div class="notifications-list">
+        {% for notification in notifications %}
+            <div class="notification-item {{ 'unread' if not notification.is_read else '' }}"
+                 data-id="{{ notification.id }}">
+                <div class="notification-content">
+                    {% if notification.actor %}
+                        <a href="/profile/{{ notification.actor.username }}">
+                            <strong>{{ notification.actor.display_name or notification.actor.username }}</strong>
+                        </a>
+                    {% endif %}
+                    {% if notification.type == 'like' %}
+                        liked your post
+                    {% elif notification.type == 'comment' %}
+                        commented on your post
+                    {% elif notification.type == 'follow' %}
+                        started following you
+                    {% elif notification.type == 'team_invite' %}
+                        joined your team
+                    {% else %}
+                        {{ notification.type }}
+                    {% endif %}
+                </div>
+                <span class="notification-time">{{ notification.created_at.strftime('%b %d, %Y') }}</span>
+            </div>
+        {% else %}
+            <p class="empty-state">No notifications.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

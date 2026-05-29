@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Feature Flags — Admin — Flock{% endblock %}
+{% block content %}
+<div class="admin-container">
+    <h1>Feature Flags</h1>
+    <nav class="admin-nav">
+        <a href="/admin">Dashboard</a>
+        <a href="/admin/users">Users</a>
+        <a href="/admin/features">Feature Flags</a>
+    </nav>
+
+    <form method="POST" action="/admin/features">
+        <table>
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>Enabled</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for flag, value in features.items() %}
+                    <tr>
+                        <td>{{ flag }}</td>
+                        <td>
+                            <select name="{{ flag }}">
+                                <option value="true" {{ 'selected' if value else '' }}>Enabled</option>
+                                <option value="false" {{ 'selected' if not value else '' }}>Disabled</option>
+                            </select>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" class="btn btn-primary">Save</button>
+    </form>
+</div>
+{% endblock %}

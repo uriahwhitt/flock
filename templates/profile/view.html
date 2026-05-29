@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}{{ g.profile_user.username }} — Flock{% endblock %}
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        {% if profile and profile.avatar_url %}
+            <img src="/{{ profile.avatar_url }}" class="avatar-lg" alt="avatar">
+        {% endif %}
+        <div class="profile-info">
+            <h1>{{ g.profile_user.display_name or g.profile_user.username }}</h1>
+            <p class="username">@{{ g.profile_user.username }}</p>
+            {% if user.bio %}
+                <p class="bio">{{ user.bio }}</p>
+            {% endif %}
+            {% if profile %}
+                {% if profile.location %}
+                    <p class="location">📍 {{ profile.location }}</p>
+                {% endif %}
+                {% if profile.website %}
+                    <p><a href="{{ profile.website }}" target="_blank">{{ profile.website }}</a></p>
+                {% endif %}
+            {% endif %}
+        </div>
+        <div class="profile-stats">
+            <div class="stat">
+                <strong>{{ user.follower_count }}</strong>
+                <span>Followers</span>
+            </div>
+            <div class="stat">
+                <strong>{{ user.following_count }}</strong>
+                <span>Following</span>
+            </div>
+            <div class="stat">
+                <strong>{{ user.post_count }}</strong>
+                <span>Posts</span>
+            </div>
+        </div>
+        <div class="profile-actions">
+            {% if session.user == g.profile_user.username %}
+                <a href="/profile/edit" class="btn">Edit Profile</a>
+            {% elif session.user %}
+                <button class="follow-btn btn" data-username="{{ g.profile_user.username }}">
+                    {{ 'Unfollow' if is_following else 'Follow' }}
+                </button>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if config.FEATURES.get('endorsements') %}
+    <div class="skills-section">
+        <h2>Skills</h2>
+        {% for skill in user.get_skills() %}
+            <div class="skill-item">
+                <span class="skill-name">{{ skill.name }}</span>
+                <span class="endorse-count">{{ skill.endorsements | length }} endorsements</span>
+                {% if session.user and session.user != g.profile_user.username %}
+                    <form method="POST" action="/profile/{{ g.profile_user.username }}/endorse/{{ skill.id }}" style="display:inline">
+                        <button type="submit" class="btn-sm">Endorse</button>
+                    </form>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="recent-posts">
+        <h2>Recent Posts</h2>
+        {% for post in user.get_recent_posts() %}
+            <div class="post-card-sm">
+                <a href="/feed/post/{{ post.id }}">
+                    <p>{{ post.content[:200] }}{% if post.content|length > 200 %}...{% endif %}</p>
+                    <span class="post-time">{{ post.created_at.strftime('%b %d, %Y') }}</span>
+                </a>
+            </div>
+        {% else %}
+            <p class="empty-state">No posts yet.</p>
+        {% endfor %}
+    </div>
+
+    <div class="recent-activity">
+        <h2>Recent Activity</h2>
+        {% for item in activity %}
+            <div class="activity-item">
+                <span class="activity-type">{{ item.action_type }}</span>
+                <span class="activity-time">{{ item.created_at.strftime('%b %d, %Y') }}</span>
+            </div>
+        {% else %}
+            <p class="empty-state">No recent activity.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="/static/js/app.js"></script>
+{% endblock %}

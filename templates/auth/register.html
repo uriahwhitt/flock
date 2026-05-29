@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Register — Flock{% endblock %}
+{% block content %}
+<div class="auth-container">
+    <h1>Create Account</h1>
+    {% if error %}
+        <div class="flash flash-error">{{ error }}</div>
+    {% endif %}
+    <form method="POST" action="/register">
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+            <label for="display_name">Display Name</label>
+            <input type="text" id="display_name" name="display_name" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Create Account</button>
+    </form>
+    <p>Already have an account? <a href="/login">Login</a></p>
+</div>
+{% endblock %}

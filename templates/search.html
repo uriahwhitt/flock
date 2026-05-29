@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Search — Flock{% endblock %}
+{% block content %}
+<div class="search-container">
+    <div class="search-form">
+        <form method="GET" action="/search">
+            <input type="text" name="q" value="{{ term }}" placeholder="Search posts and people..." class="search-input">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+    </div>
+
+    {% if term %}
+        <div class="search-results">
+            <div class="results-section">
+                <h2>Posts ({{ posts | length }})</h2>
+                {% for post in posts %}
+                    <div class="post-card-sm">
+                        <p>{{ post.content[:300] }}{% if post.content|length > 300 %}...{% endif %}</p>
+                        <a href="/feed/post/{{ post.id }}" class="btn-sm">View</a>
+                    </div>
+                {% else %}
+                    <p class="empty-state">No posts found.</p>
+                {% endfor %}
+            </div>
+
+            <div class="results-section">
+                <h2>People ({{ users | length }})</h2>
+                {% for user in users %}
+                    <div class="user-card-sm">
+                        <a href="/profile/{{ user.username }}">
+                            {% if user.avatar_url %}
+                                <img src="/{{ user.avatar_url }}" class="avatar-xs" alt="avatar">
+                            {% endif %}
+                            <strong>{{ user.display_name or user.username }}</strong>
+                            <span class="username">@{{ user.username }}</span>
+                        </a>
+                    </div>
+                {% else %}
+                    <p class="empty-state">No people found.</p>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

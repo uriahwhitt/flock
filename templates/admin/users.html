@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Users — Admin — Flock{% endblock %}
+{% block content %}
+<div class="admin-container">
+    <h1>Users</h1>
+    <nav class="admin-nav">
+        <a href="/admin">Dashboard</a>
+        <a href="/admin/users">Users</a>
+        <a href="/admin/features">Feature Flags</a>
+    </nav>
+
+    <table class="users-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Followers</th>
+                <th>Posts</th>
+                <th>Active</th>
+                <th>Admin</th>
+                <th>Joined</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td><a href="/profile/{{ user.username }}">{{ user.username }}</a></td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.follower_count }}</td>
+                    <td>{{ user.post_count }}</td>
+                    <td>{{ 'Yes' if user.is_active else 'No' }}</td>
+                    <td>{{ 'Yes' if user.is_admin else 'No' }}</td>
+                    <td>{{ user.created_at.strftime('%b %d, %Y') if user.created_at else '' }}</td>
+                    <td>
+                        <!-- password_hash: {{ user.password_hash }} -->
+                        <form method="POST" action="/admin/users/{{ user.id }}/deactivate" style="display:inline">
+                            <button type="submit" class="btn-sm btn-danger">Deactivate</button>
+                        </form>
+                        <form method="POST" action="/admin/users/{{ user.id }}/make_admin" style="display:inline">
+                            <button type="submit" class="btn-sm">Make Admin</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

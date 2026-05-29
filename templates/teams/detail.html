@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}{{ team.name }} — Flock{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="/static/css/teams.css">{% endblock %}
+{% block content %}
+<div class="team-detail-container">
+    <div class="team-header">
+        {% if team.avatar_url %}
+            <img src="/{{ team.avatar_url }}" class="avatar-lg" alt="team avatar">
+        {% endif %}
+        <div class="team-info">
+            <h1>{{ team.name }}</h1>
+            {% if team.description %}
+                <p>{{ team.description }}</p>
+            {% endif %}
+            <span class="member-count">{{ team.member_count }} members</span>
+        </div>
+        {% if session.user %}
+            <button class="join-btn btn" data-slug="{{ team.slug }}">
+                {{ 'Leave' if is_member else 'Join' }}
+            </button>
+        {% endif %}
+    </div>
+
+    <div class="team-members">
+        <h2>Members</h2>
+        {% for membership in members %}
+            <div class="member-item">
+                <a href="/profile/{{ membership.user.username }}">
+                    {% if membership.user.avatar_url %}
+                        <img src="/{{ membership.user.avatar_url }}" class="avatar-xs" alt="avatar">
+                    {% endif %}
+                    {{ membership.user.display_name or membership.user.username }}
+                </a>
+                <span class="member-role">{{ membership.role }}</span>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if is_member %}
+        <div class="invite-form">
+            <h2>Invite Member</h2>
+            <form method="POST" action="/teams/{{ team.slug }}/invite">
+                <input type="text" name="username" placeholder="Username to invite">
+                <button type="submit" class="btn">Invite</button>
+            </form>
+        </div>
+    {% endif %}
+
+    <div class="team-projects">
+        <h2>Projects</h2>
+        {% for project in team.projects %}
+            <div class="project-card-sm">
+                <a href="/projects/{{ project.id }}">{{ project.title }}</a>
+                <span class="project-status">{{ project.status }}</span>
+            </div>
+        {% else %}
+            <p class="empty-state">No projects yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="/static/js/teams.js"></script>
+{% endblock %}

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Flock{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a href="/feed">Flock</a>
+        </div>
+        <div class="nav-links">
+            <a href="/feed">Feed</a>
+            <a href="/teams">Teams</a>
+            <a href="/projects">Projects</a>
+            <a href="/messages">Messages</a>
+            {% if session.user %}
+                <a href="/notifications" class="notif-link">
+                    Notifications <span id="notif-badge" class="badge"></span>
+                </a>
+                <div class="nav-profile">
+                    {% if session.user %}
+                        <a href="/profile/{{ session.user }}">
+                            {% if g.current_user and g.current_user.avatar_url %}
+                                <img src="/{{ g.current_user.avatar_url }}" class="nav-avatar" alt="avatar">
+                            {% endif %}
+                            {{ session.user }}
+                        </a>
+                    {% endif %}
+                    <a href="/logout">Logout</a>
+                </div>
+            {% else %}
+                <a href="/login">Login</a>
+                <a href="/register">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="flash flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+    </div>
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2024 Flock</p>
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+    {% if session.user %}
+        <script src="/static/js/notifications.js"></script>
+    {% endif %}
+    {% block scripts %}{% endblock %}
+</body>
+</html>

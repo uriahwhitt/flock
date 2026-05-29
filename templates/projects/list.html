@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Projects — Flock{% endblock %}
+{% block content %}
+<div class="projects-container">
+    <div class="projects-header">
+        <h1>Projects</h1>
+        {% if session.user %}
+            <a href="/projects/create" class="btn btn-primary">New Project</a>
+        {% endif %}
+    </div>
+
+    <div class="projects-list">
+        {% for project in projects %}
+            <div class="project-card">
+                <h3><a href="/projects/{{ project.id }}">{{ project.title }}</a></h3>
+                {% if project.description %}
+                    <p>{{ project.description[:200] }}{% if project.description|length > 200 %}...{% endif %}</p>
+                {% endif %}
+                <div class="project-meta">
+                    <span class="project-status status-{{ project.status }}">{{ project.status }}</span>
+                    <span>by <a href="/profile/{{ project.owner.username }}">{{ project.owner.display_name or project.owner.username }}</a></span>
+                    {% if project.team %}
+                        <span>in <a href="/teams/{{ project.team.slug }}">{{ project.team.name }}</a></span>
+                    {% endif %}
+                </div>
+            </div>
+        {% else %}
+            <p class="empty-state">No projects yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
