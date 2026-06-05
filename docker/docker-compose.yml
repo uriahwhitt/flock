@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  flock:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: flock:broken-baseline
+    ports:
+      - "5000:5000"
+    volumes:
+      - flock_uploads:/app/static/uploads
+    environment:
+      - FLASK_ENV=development
+      - SECRET_KEY=flock-dev-secret-not-for-prod
+
+  flock-eval:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.eval
+    image: flock:eval
+    ports:
+      - "5001:5000"
+    environment:
+      - FLASK_ENV=development
+      - FLOCK_EVAL_MODE=1
+
+volumes:
+  flock_uploads:

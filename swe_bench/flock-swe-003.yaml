@@ -1,0 +1,29 @@
+instance_id: flock-swe-003
+repo: flock
+base_commit: broken-baseline
+
+problem_statement: |
+  Team administrators report that users can sometimes gain team membership
+  using invitations that have been revoked. The invitation system marks
+  the invitation as REVOKED in the database, but the user appears as a
+  team member anyway.
+
+  The bug is in _complete_invitation() in routes/teams.py. Review this
+  function and fix it so that a REVOKED invitation cannot result in a
+  TeamMember record being created. A correct fix must ensure that no
+  database commit creates a membership record before the invitation state
+  has been verified as PENDING.
+
+hints:
+  - Review routes/teams.py, specifically _complete_invitation()
+  - Pay attention to the order of database operations relative to state validation
+  - A REVOKED invitation should not result in any team membership changes
+
+test_patch: tests/verification/test_verify_trap_41.py
+
+FAIL_TO_PASS:
+  - test_revoked_invitation_cannot_be_accepted
+  - test_role_not_committed_before_state_check
+
+PASS_TO_PASS:
+  - test_valid_invitation_creates_membership

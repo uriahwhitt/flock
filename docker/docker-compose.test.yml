@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  flock-verify:
+    image: flock:eval
+    command: >
+      python3 -m pytest tests/verification/ -v --tb=short
+      --junit-xml=/app/test-results/results.xml
+    volumes:
+      - ./test-results:/app/test-results
+    environment:
+      - FLASK_ENV=development
+      - FLOCK_EVAL_MODE=1

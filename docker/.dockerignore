@@ -1,0 +1,12 @@
+.git
+pycache
+*.pyc
+*.pyo
+*.pyd
+.env
+flock.db
+static/uploads/
+docs/
+*.md
+!README.md
+tests/verification/

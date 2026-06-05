@@ -1,0 +1,10 @@
+FROM flock:broken-baseline
+
+# Add verification test suite and evaluator tools
+# These are excluded from the baseline image by .dockerignore
+COPY tests/verification/ /app/tests/verification/
+COPY docs/ /app/docs/
+
+ENV FLOCK_EVAL_MODE=1
+
+CMD ["python3", "-m", "pytest", "tests/verification/", "-v", "--tb=short"]
