@@ -12,3 +12,12 @@ venv/
 dist/
 build/
 .pytest_cache/
+
+# Local-only evaluation infrastructure — not for remote
+CLAUDE.md
+docs/
+tools/verify_traps.py
+prompt.md
+update.md
+TRACK1_PHASE2_REPORT.md
+FLOCK_PRESUBMISSION_ISSUES.md
