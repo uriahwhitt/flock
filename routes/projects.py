@@ -1,11 +1,13 @@
 import logging
 from datetime import datetime
-from flask import Blueprint, render_template, request, redirect
+from flask import Blueprint, render_template, request, redirect, g
 from database import db
 from models.project import Project, ProjectContributor
 from models.team import TeamMember
 from models.search_index import SearchIndex
+from models.message import Message
 from utils.auth import login_required, get_current_user
+import config
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +18,24 @@ projects_bp = Blueprint('projects', __name__)
 @projects_bp.route('/')
 def list_projects():
     projects = Project.query.order_by(Project.created_at.desc()).all()
+
+    if config.FEATURES.get('projects') and config.FEATURES.get('messages'):
+        for p in projects:
+            p.unread_messages = _get_project_thread_count(p, g.current_user)
+
     return render_template('projects/list.html', projects=projects)
+
+
+def _get_project_thread_count(project, user):
+    """Get unread message count for project thread."""
+    try:
+        return Message.query.filter_by(
+            project_id=project.id,
+            recipient_id=user['id'],
+            is_read=False
+        ).count()
+    except:
+        return 0
 
 
 @projects_bp.route('/<int:project_id>')

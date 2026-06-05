@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, jsonify, g
 from database import db
-from models.team import Team, TeamMember, TeamRole
+from models.team import Team, TeamMember, TeamRole, TeamInvitation
 from models.search_index import SearchIndex
 from utils.auth import login_required, get_current_user
 from utils.notifications import create_notification
@@ -200,3 +200,89 @@ def invite_member(slug):
 
     logger.info(f"{current_user.username} invited {username} to team {slug}")
     return redirect(f'/teams/{slug}')
+
+
+@teams_bp.route('/<slug>/invite/create', methods=['POST'])
+@login_required
+def create_invitation(slug):
+    current_user = get_current_user()
+    team = Team.query.filter_by(slug=slug).first_or_404()
+
+    role_check = TeamRole.query.filter_by(team_id=team.id, user_id=current_user.id).first()
+    if not role_check or role_check.role not in ('owner', 'admin'):
+        return jsonify({'error': 'unauthorized'}), 403
+
+    username = request.form.get('username', '').strip()
+    from models.user import User
+    invite_user = User.query.filter_by(username=username).first()
+    if not invite_user:
+        return jsonify({'error': 'user not found'}), 404
+
+    invitation = TeamInvitation(
+        team_id=team.id,
+        invited_user_id=invite_user.id,
+        invited_by_id=current_user.id,
+        role='member',
+        state='PENDING',
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow()
+    )
+    db.session.add(invitation)
+    db.session.commit()
+
+    logger.info(f"Invitation created for {username} to join {slug} by {current_user.username}")
+    return jsonify({'invitation_id': invitation.id, 'state': 'PENDING'})
+
+
+@teams_bp.route('/<slug>/invite/<int:invitation_id>/revoke', methods=['POST'])
+@login_required
+def revoke_invitation(slug, invitation_id):
+    current_user = get_current_user()
+    team = Team.query.filter_by(slug=slug).first_or_404()
+
+    role_check = TeamRole.query.filter_by(team_id=team.id, user_id=current_user.id).first()
+    if not role_check or role_check.role not in ('owner', 'admin'):
+        return jsonify({'error': 'unauthorized'}), 403
+
+    invitation = TeamInvitation.query.filter_by(id=invitation_id, team_id=team.id).first_or_404()
+    invitation.state = 'REVOKED'
+    invitation.updated_at = datetime.utcnow()
+    db.session.commit()
+
+    logger.info(f"Invitation {invitation_id} revoked for team {slug} by {current_user.username}")
+    return jsonify({'success': True})
+
+
+def _complete_invitation(invitation, team):
+    """Complete invitation acceptance. Uses optimistic role pre-allocation."""
+    member = TeamMember(
+        team_id=team.id,
+        user_id=invitation.invited_user_id,
+        role=invitation.role
+    )
+    db.session.add(member)
+    db.session.commit()                      # Role committed here
+
+    if invitation.state != 'PENDING':        # State checked AFTER commit
+        db.session.delete(member)
+        db.session.commit()
+        return False
+
+    invitation.state = 'ACCEPTED'
+    db.session.commit()
+    return True
+
+
+@teams_bp.route('/<slug>/invite/<int:invitation_id>/accept', methods=['POST'])
+@login_required
+def accept_invitation(slug, invitation_id):
+    current_user = get_current_user()
+    team = Team.query.filter_by(slug=slug).first_or_404()
+
+    invitation = TeamInvitation.query.filter_by(id=invitation_id, team_id=team.id).first_or_404()
+
+    if invitation.invited_user_id != current_user.id:
+        return jsonify({'success': False}), 403
+
+    success = _complete_invitation(invitation, team)
+    return jsonify({'success': success})

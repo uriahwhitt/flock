@@ -68,3 +68,26 @@ class TeamRole(db.Model):
     team = db.relationship('Team', backref='roles')
     user = db.relationship('User', foreign_keys=[user_id], backref='team_roles')
     granter = db.relationship('User', foreign_keys=[granted_by])
+
+
+class TeamInvitation(db.Model):
+    """Represents an invitation to join a team.
+
+    Manages the full lifecycle of a team invitation from creation through
+    acceptance, revocation, or expiration. State transitions are:
+        PENDING  -> ACCEPTED (invitee accepts the invitation)
+        PENDING  -> REVOKED  (admin cancels before acceptance)
+        PENDING  -> EXPIRED  (TTL passes without action)
+
+    The role field is set by the inviting admin at creation time and
+    determines what role the invitee receives upon acceptance.
+    """
+    __tablename__ = 'team_invitations'
+    id = db.Column(db.Integer, primary_key=True)
+    team_id = db.Column(db.Integer, db.ForeignKey('teams.id'))
+    invited_user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    invited_by_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    role = db.Column(db.String(20), default='member')
+    state = db.Column(db.String(20), default='PENDING')
+    created_at = db.Column(db.DateTime)
+    updated_at = db.Column(db.DateTime)
