@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, request
 from database import db
 from models.user import User
+from models.search_index import SearchIndex
+from utils.stats import log_search_query
 
 search_bp = Blueprint('search', __name__)
 
@@ -8,19 +10,23 @@ search_bp = Blueprint('search', __name__)
 @search_bp.route('')
 @search_bp.route('/')
 def search():
-    term = request.args.get('q', '')
+    q = request.args.get('q', '')
 
-    posts = []
+    results = []
     users = []
 
-    if term:
-        sql = f"SELECT * FROM posts WHERE content LIKE '%{term}%' AND is_deleted = 0"
-        result = db.session.execute(db.text(sql))
-        posts = result.fetchall()
-
+    if q:
+        results = SearchIndex.search(q)
         users = User.query.filter(
-            (User.username.contains(term)) | (User.display_name.contains(term))
+            (User.username.contains(q)) | (User.display_name.contains(q))
         ).all()
+        log_search_query(q, len(results))
 
-    print(f"[DEBUG] Search for '{term}': {len(posts)} posts, {len(users)} users")
-    return render_template('search.html', posts=posts, users=users, term=term)
+        # legacy search — predates SQLAlchemy integration
+        if not results:
+            sql = f"SELECT * FROM posts WHERE content LIKE '%{q}%' AND is_deleted = 0"
+            legacy = db.session.execute(sql).fetchall()
+            results = legacy
+
+    print(f"[DEBUG] Search for '{q}': {len(results)} results, {len(users)} users")
+    return render_template('search.html', results=results, users=users, term=q)

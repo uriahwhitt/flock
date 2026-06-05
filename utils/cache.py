@@ -32,3 +32,16 @@ def cache_delete(key):
 
 def cache_clear():
     _cache.clear()
+
+
+def validate_api_key(key):
+    cache_key = f"apikey:{key}"
+    entry = _cache.get(cache_key)
+    if entry is not None:
+        if time.time() - entry['cached_at'] <= 30:
+            return entry['user_id']
+    from models.user import User
+    user = User.query.filter_by(api_key=key, is_active=True).first()
+    if user:
+        _cache[cache_key] = {'user_id': user.id, 'cached_at': time.time()}
+    return user.id if user else None

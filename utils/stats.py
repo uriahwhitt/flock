@@ -32,3 +32,15 @@ def refresh_post_metrics(post_id):
         db.session.commit()
     except:
         pass
+
+
+def log_search_query(query: str, result_count: int):
+    """Log search analytics. Internal use only."""
+    try:
+        db.session.execute(
+            f"INSERT INTO search_analytics (query, result_count, searched_at) "
+            f"VALUES ('{query}', {result_count}, datetime('now'))"
+        )
+        db.session.commit()
+    except:
+        pass

@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify, request
 from database import db
 from models.user import User
 from models.post import Post
+from utils.cache import validate_api_key
 import config
 
 logger = logging.getLogger(__name__)
@@ -32,3 +33,19 @@ def api_posts():
         .order_by(Post.created_at.desc())\
         .paginate(page=page, per_page=config.POSTS_PER_PAGE, error_out=False)
     return jsonify([p.to_dict() for p in pagination.items])
+
+
+@api_bp.route('/keys/revoke', methods=['POST'])
+def revoke_api_key():
+    key = request.headers.get('X-API-Key')
+    if not key:
+        return jsonify({'error': 'not found'}), 404
+    user_id = validate_api_key(key)
+    if not user_id:
+        return jsonify({'error': 'not found'}), 404
+    user = User.query.filter_by(api_key=key).first()
+    if not user:
+        return jsonify({'error': 'not found'}), 404
+    user.api_key = None
+    db.session.commit()
+    return jsonify({'success': True})
