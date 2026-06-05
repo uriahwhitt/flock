@@ -187,3 +187,53 @@ For bugs, include:
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
+
+---
+
+## Codebase Overview
+
+Flock is a professional social platform built by a small team. The
+codebase reflects decisions made under time pressure by two developers
+with different experience levels.
+
+### Developer Personas
+
+**Dev 1** built the core features: auth, posts, feed, profiles, search.
+Their code uses `print()` for debug output and direct `db.session`
+operations. Files: `routes/auth.py`, `routes/feed.py`,
+`routes/profile.py`, `routes/search.py`, `utils/auth.py`,
+`utils/feed.py`, `models/user.py`, `models/post.py`
+
+**Dev 2** added teams, projects, notifications, messages, and admin.
+Their code uses the `logging` module and a `create_notification()`
+helper. Files: `routes/teams.py`, `routes/projects.py`,
+`routes/notifications.py`, `routes/messages.py`, `routes/admin.py`,
+`utils/notifications.py`, `utils/stats.py`, and all newer models.
+
+### Architecture Notes
+
+- SQLite database via SQLAlchemy. DB file: `flock.db`
+- Run `python db_setup.py` to initialize with seed data
+- Feature flags live in `config.py` under `FEATURES` dict
+- In-memory cache in `utils/cache.py` — resets on server restart
+- File uploads stored in `static/uploads/`
+- Session stores username string (not user_id)
+
+### Running the Application
+
+```bash
+pip install -r requirements.txt
+python db_setup.py
+python app.py
+```
+
+### Running Tests
+
+```bash
+python -m pytest tests/ -v
+```
+
+### Known Limitations
+
+This is an early-stage codebase. Some features are stubbed or
+incomplete. TODOs in the code indicate planned but unimplemented work.

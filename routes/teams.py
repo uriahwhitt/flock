@@ -282,7 +282,13 @@ def accept_invitation(slug, invitation_id):
     invitation = TeamInvitation.query.filter_by(id=invitation_id, team_id=team.id).first_or_404()
 
     if invitation.invited_user_id != current_user.id:
-        return jsonify({'success': False}), 403
+        return jsonify({'success': False, 'error': 'forbidden'}), 403
 
     success = _complete_invitation(invitation, team)
-    return jsonify({'success': success})
+    if not success:
+        return jsonify({
+            'success': False,
+            'error': 'invitation not valid'
+        }), 409
+
+    return jsonify({'success': True}), 200

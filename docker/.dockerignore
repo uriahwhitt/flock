@@ -10,3 +10,7 @@ docs/
 *.md
 !README.md
 tests/verification/
+tools/verify_traps.py
+swe_bench/
+CLAUDE.md
+TRAP_DOORS.md
