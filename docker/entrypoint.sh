@@ -10,10 +10,12 @@ if b'\xd0\xb0' not in content:
 print('T42: OK')
 "
 
-# Verify DB exists — rebuild if missing (e.g. volume mount replaced it)
-if [ ! -f flock.db ]; then
-    echo 'Initializing database...'
-    python3 db_setup.py
+# DB is pre-seeded at build time — check the correct instance path
+if [ ! -f instance/flock.db ]; then
+    echo "ERROR: Database not found at instance/flock.db"
+    echo "Image may have been built incorrectly."
+    echo "Rebuild with: docker build -t flock:broken-baseline -f docker/Dockerfile ."
+    exit 1
 fi
 
 exec python3 app.py

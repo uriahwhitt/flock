@@ -5,6 +5,7 @@ pycache
 *.pyd
 .env
 flock.db
+instance/
 static/uploads/
 docs/
 *.md
