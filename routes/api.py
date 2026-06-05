@@ -13,21 +13,30 @@ api_bp = Blueprint('api', __name__)
 
 @api_bp.route('/users/<username>')
 def api_user(username):
-    api_key = request.headers.get('X-API-Key')
+    key = request.headers.get('X-API-Key')
+    user_id = validate_api_key(key) if key else None
+    if not user_id:
+        return jsonify({'error': 'unauthorized'}), 401
     user = User.query.filter_by(username=username).first_or_404()
     return jsonify(user.to_dict())
 
 
 @api_bp.route('/posts/<int:post_id>')
 def api_post(post_id):
-    api_key = request.headers.get('X-API-Key')
+    key = request.headers.get('X-API-Key')
+    user_id = validate_api_key(key) if key else None
+    if not user_id:
+        return jsonify({'error': 'unauthorized'}), 401
     post = Post.query.get_or_404(post_id)
     return jsonify(post.to_dict())
 
 
 @api_bp.route('/posts')
 def api_posts():
-    api_key = request.headers.get('X-API-Key')
+    key = request.headers.get('X-API-Key')
+    user_id = validate_api_key(key) if key else None
+    if not user_id:
+        return jsonify({'error': 'unauthorized'}), 401
     page = request.args.get('page', 1, type=int)
     pagination = Post.query.filter_by(is_deleted=False)\
         .order_by(Post.created_at.desc())\
