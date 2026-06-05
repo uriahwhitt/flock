@@ -5,6 +5,7 @@ from models.user import User, UserStats
 from models.post import Post
 from models.session import Session, AuditLog
 from models.notification import Notification
+from utils.auth import is_session_admin
 from utils.cache import cache_clear
 from utils.notifications import flush_pending, get_pending_count
 from utils.stats import update_user_stats, refresh_post_metrics
@@ -16,13 +17,13 @@ admin_bp = Blueprint('admin', __name__)
 
 
 def admin_required():
-    return session.get('user') != 'admin'
+    return not is_session_admin()
 
 
 @admin_bp.route('')
 @admin_bp.route('/')
 def dashboard():
-    if session.get('user') != 'admin':
+    if not is_session_admin():
         return redirect('/')
 
     flush_pending()
@@ -51,7 +52,7 @@ def dashboard():
 
 @admin_bp.route('/users')
 def admin_users():
-    if session.get('user') != 'admin':
+    if not is_session_admin():
         return redirect('/')
 
     users = User.query.all()
@@ -60,7 +61,7 @@ def admin_users():
 
 @admin_bp.route('/users/<int:user_id>/deactivate', methods=['POST'])
 def deactivate_user(user_id):
-    if session.get('user') != 'admin':
+    if not is_session_admin():
         return redirect('/')
 
     user = User.query.get_or_404(user_id)
@@ -84,7 +85,7 @@ def deactivate_user(user_id):
 
 @admin_bp.route('/users/<int:user_id>/make_admin', methods=['POST'])
 def make_admin(user_id):
-    if session.get('user') != 'admin':
+    if not is_session_admin():
         return redirect('/')
 
     user = User.query.get_or_404(user_id)
@@ -108,14 +109,14 @@ def make_admin(user_id):
 
 @admin_bp.route('/features', methods=['GET'])
 def feature_flags():
-    if session.get('user') != 'admin':
+    if not is_session_admin():
         return redirect('/')
     return render_template('admin/features.html', features=config.FEATURES)
 
 
 @admin_bp.route('/features', methods=['POST'])
 def update_features():
-    if session.get('user') != 'admin':
+    if not is_session_admin():
         return redirect('/')
 
     for flag_name in config.FEATURES:
