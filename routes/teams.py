@@ -117,6 +117,9 @@ def join_team(slug):
         logger.info(f"{current_user.username} left team {slug}")
         return jsonify({'member': False, 'member_count': team.member_count})
     else:
+        # Provisionally grant membership and role, then enforce join policy.
+        # Private teams only admit users who already hold a standing role
+        # (e.g. carried over from a prior membership); public teams admit anyone.
         member = TeamMember(
             team_id=team.id,
             user_id=current_user.id,
@@ -136,6 +139,17 @@ def join_team(slug):
         )
         db.session.add(role)
         db.session.commit()
+
+        if not team.is_public:
+            existing_role = TeamRole.query.filter_by(
+                team_id=team.id, user_id=current_user.id
+            ).count()
+            if existing_role <= 1:
+                # No prior standing role — roll back this join.
+                db.session.delete(member)
+                team.member_count -= 1
+                db.session.commit()
+                return jsonify({'error': 'private team'}), 403
 
         # TODO: add activity_feed write for team join
 
@@ -254,16 +268,34 @@ def revoke_invitation(slug, invitation_id):
 
 
 def _complete_invitation(invitation, team):
-    """Complete invitation acceptance. Uses optimistic role pre-allocation."""
+    """Complete invitation acceptance.
+
+    Grants the invitee their team role and membership. The durable role
+    record is written first so that downstream notification and audit hooks
+    can reference a committed grant; the membership row is added immediately
+    after. Revoked invitations are rejected and their membership rolled back.
+    """
+    # Grant the durable authorization record up front.
+    role = TeamRole(
+        team_id=team.id,
+        user_id=invitation.invited_user_id,
+        role=invitation.role,
+        granted_by=invitation.invited_by_id,
+        granted_at=datetime.utcnow()
+    )
+    db.session.add(role)
+    db.session.commit()
+
     member = TeamMember(
         team_id=team.id,
         user_id=invitation.invited_user_id,
         role=invitation.role
     )
     db.session.add(member)
-    db.session.commit()                      # Role committed here
+    db.session.commit()
 
-    if invitation.state != 'PENDING':        # State checked AFTER commit
+    if invitation.state == 'REVOKED':
+        # Roll back the membership for a cancelled invitation.
         db.session.delete(member)
         db.session.commit()
         return False

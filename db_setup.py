@@ -5,7 +5,7 @@ from app import create_app
 from database import db
 from models.user import User, UserProfile, UserStats
 from models.post import Post, PostMetrics
-from models.team import Team, TeamMember, TeamRole
+from models.team import Team, TeamMember, TeamRole, TeamInvitation
 from models.session import Session
 from models.skill import Skill
 
@@ -233,6 +233,19 @@ def seed_data():
     tr1 = TeamRole(team_id=team.id, user_id=alice.id, role='owner', granted_by=alice.id, granted_at=datetime.utcnow())
     tr2 = TeamRole(team_id=team.id, user_id=bob.id, role='member', granted_by=alice.id, granted_at=datetime.utcnow())
     db.session.add_all([tr1, tr2])
+    db.session.commit()
+
+    # Pending invitation for contractor_dev (not yet a member of any team)
+    invite = TeamInvitation(
+        team_id=team.id,
+        invited_user_id=contractor_dev.id,
+        invited_by_id=alice.id,
+        role='member',
+        state='PENDING',
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow()
+    )
+    db.session.add(invite)
     db.session.commit()
 
     print("Seed data created successfully.")
