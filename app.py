@@ -19,6 +19,7 @@ def create_app():
     from routes.search import search_bp
     from routes.admin import admin_bp
     from routes.api import api_bp
+    from routes.payments import payments_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(feed_bp, url_prefix='/feed')
@@ -30,6 +31,7 @@ def create_app():
     app.register_blueprint(search_bp, url_prefix='/search')
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(api_bp, url_prefix='/api/v1')
+    app.register_blueprint(payments_bp, url_prefix='/payments')
 
     return app
 

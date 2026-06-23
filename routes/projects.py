@@ -1,12 +1,13 @@
 import logging
 from datetime import datetime
-from flask import Blueprint, render_template, request, redirect, g
+from flask import Blueprint, render_template, request, redirect, jsonify, g
 from database import db
 from models.project import Project, ProjectContributor
 from models.team import TeamMember
 from models.search_index import SearchIndex
 from models.message import Message
 from utils.auth import login_required, get_current_user
+from utils.pagination import paginate
 import config
 
 logger = logging.getLogger(__name__)
@@ -110,6 +111,18 @@ def create_project_post():
 
     logger.info(f"Project created: {title} by {current_user.username}")
     return redirect(f'/projects/{project.id}')
+
+@projects_bp.route('/browse')
+def browse_projects():
+    page = int(request.args.get('page', 1))
+    query = Project.query.order_by(Project.created_at.desc())
+    result = paginate(query, page)
+    return jsonify({
+        'projects': [{'id': p.id, 'title': p.title} for p in result['items']],
+        'total': result['total'],
+        'page': result['page'],
+        'pages': result['pages'],
+    })
 
 # TODO: implement project edit route
 # TODO: implement project delete route

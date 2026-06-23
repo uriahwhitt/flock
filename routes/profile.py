@@ -9,6 +9,7 @@ from models.search_index import SearchIndex
 from models.user import follows
 from utils.auth import login_required, get_current_user
 from utils.cache import cache_get, cache_set, cache_delete
+from utils.profile_fields import filter_profile_fields
 
 profile_bp = Blueprint('profile', __name__)
 
@@ -90,6 +91,22 @@ def edit_profile_post():
 
     cache_delete(f"profile:{current_user.username}")
     print(f"[DEBUG] Profile updated for {current_user.username}")
+    return redirect(f'/profile/{current_user.username}')
+
+
+@profile_bp.route('/settings/update', methods=['POST'])
+@login_required
+def update_profile_settings():
+    current_user = get_current_user()
+    fields = filter_profile_fields(request.form.to_dict())
+    profile = UserProfile.query.filter_by(user_id=current_user.id).first()
+    if profile:
+        for k, v in fields.items():
+            if hasattr(profile, k):
+                setattr(profile, k, v)
+        profile.updated_at = datetime.utcnow()
+        db.session.commit()
+    print(f"[DEBUG] Profile settings updated for {current_user.username}")
     return redirect(f'/profile/{current_user.username}')
 
 

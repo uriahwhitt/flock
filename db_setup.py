@@ -248,6 +248,38 @@ def seed_data():
     db.session.add(invite)
     db.session.commit()
 
+    # --- Flock Pay seed: credit accounts, one settled txn, one pending refund ---
+    from models.ledger import CreditAccount, Hold, LedgerEntry, Transaction, Refund
+
+    platform_acct = CreditAccount(user_id=0, balance=0)
+    alice_acct = CreditAccount(user_id=alice.id, balance=1000)
+    bob_acct = CreditAccount(user_id=bob.id, balance=500)
+    contractor_acct = CreditAccount(user_id=contractor_dev.id, balance=250)
+    db.session.add_all([platform_acct, alice_acct, bob_acct, contractor_acct])
+    db.session.commit()
+
+    # One historical settled transaction alice -> bob (50), no fee, fully booked.
+    h = Hold(payer_id=alice.id, payee_id=bob.id, amount=50, state='settled')
+    db.session.add(h); db.session.commit()
+    alice_acct.balance -= 50
+    bob_acct.balance += 50
+    t = Transaction(payer_id=alice.id, payee_id=bob.id, amount=50, fee=0,
+                    state='settled', hold_id=h.id)
+    db.session.add(t); db.session.commit()
+    db.session.add_all([
+        LedgerEntry(account_id=alice.id, direction='debit', amount=50, txn_id=t.id),
+        LedgerEntry(account_id=bob.id, direction='credit', amount=50, txn_id=t.id),
+    ])
+    db.session.commit()
+
+    # One pending refund on that txn (payor requested; awaiting payee ack).
+    # NOTE: request_refund already credited alice in the live flow; for seed
+    # realism we leave this refund as a fresh pending row WITHOUT pre-crediting,
+    # so the seeded at-rest state is balanced. The flaw is exercised by the
+    # verifier through the live endpoints, not the seed.
+    r = Refund(txn_id=t.id, amount=50, state='pending')
+    db.session.add(r); db.session.commit()
+
     print("Seed data created successfully.")
     print(f"  Users: admin, alice, bob, contractor_dev")
     print(f"  Default admin password: admin123")
